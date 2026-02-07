@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Atlas Journal | Echoes</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f0f0f">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%230f0f0f'/><text x='50%' y='50%' font-size='120' fill='%23c5a059' text-anchor='middle' dominant-baseline='central' font-family='Georgia'>✦</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%230f0f0f'/><text x='50%' y='50%' font-size='120' fill='%23c5a059' text-anchor='middle' dominant-baseline='central' font-family='Georgia'>✦</text></svg>">
+    
+    <style>
+        :root {
+            --bg: #0f0f0f;
+            --relic-gold: #c5a059;
+            --text: #d1d1d1;
+            --accent: #2a2a2a;
+        }
+
+        * {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Georgia', serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            padding: 20px;
+            border-bottom: 1px solid var(--relic-gold);
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            letter-spacing: 0.2rem;
+            color: var(--relic-gold);
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        #journalInput {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            padding: 20px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            outline: none;
+            resize: none;
+            width: 100%;
+            box-sizing: border-box;
+            -webkit-appearance: none;
+            font-family: 'Georgia', serif;
+        }
+
+        .status-bar {
+            padding: 10px 20px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--relic-gold);
+            background: var(--accent);
+            display: flex;
+            justify-content: space-between;
+            flex-shrink: 0;
+            border-top: 1px solid var(--relic-gold);
+        }
+
+        @media (max-height: 500px) {
+            h1 {
+                font-size: 1rem;
+                padding: 10px 0;
+            }
+            #journalInput {
+                padding: 15px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Project Core: Echoes</h1>
+</header>
+
+<textarea id="journalInput" placeholder="Record your thoughts, Joshua..."></textarea>
+
+<div class="status-bar">
+    <span id="saveStatus">System Ready</span>
+    <span>Atlas Odysseus Sterling</span>
+</div>
+
+<script>
+    // Register Service Worker for offline support
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').then(reg => {
+            console.log('Service Worker registered');
+        }).catch(err => {
+            console.log('Service Worker registration failed:', err);
+        });
+    }
+
+    const journal = document.getElementById('journalInput');
+    const status = document.getElementById('saveStatus');
+
+    // Recovery: Get data immediately when app opens
+    window.onload = () => {
+        const savedEcho = localStorage.getItem('atlas_journal_data');
+        if (savedEcho) {
+            journal.value = savedEcho;
+            status.innerText = "Echoes Recovered";
+            setTimeout(() => {
+                status.innerText = "System Ready";
+            }, 2000);
+        }
+    };
+
+    // Auto-Save: Save every time the user stops typing
+    let timeout = null;
+    journal.addEventListener('input', () => {
+        status.innerText = "Typing...";
+        clearTimeout(timeout);
+        
+        timeout = setTimeout(() => {
+            localStorage.setItem('atlas_journal_data', journal.value);
+            status.innerText = "Permanently Saved";
+        }, 1000);
+    });
+
+    // Prevent accidental page unload when there are unsaved changes
+    window.addEventListener('beforeunload', (e) => {
+        const currentValue = journal.value;
+        const savedValue = localStorage.getItem('atlas_journal_data') || '';
+        if (currentValue !== savedValue && currentValue.length > 0) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+</script>
+
+</body>
+</html>
